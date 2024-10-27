@@ -10,7 +10,7 @@ system:
   password: admin123
 
 log:
-  level: debug
+  level: info
   time_zone: Asia/Shanghai
   log_name: 1Panel
   log_suffix: .log

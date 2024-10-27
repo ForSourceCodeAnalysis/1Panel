@@ -40,6 +40,7 @@ func Init() {
 			panic(fmt.Errorf("Fatal error config file: %s \n", err))
 		}
 	} else {
+		//从/usr/local/bin/1pctl脚本中读取配置
 		baseDir = loadParams("BASE_DIR")
 		port = loadParams("ORIGINAL_PORT")
 		version = loadParams("ORIGINAL_VERSION")
@@ -52,6 +53,7 @@ func Init() {
 			panic(fmt.Errorf("Fatal error config file: %s \n", err))
 		}
 	}
+	//配置监听，如果配置变动，会自动更新全局配置
 	v.OnConfigChange(func(e fsnotify.Event) {
 		if err := v.Unmarshal(&global.CONF); err != nil {
 			panic(err)
@@ -82,8 +84,8 @@ func Init() {
 		}
 	}
 
-	global.CONF = serverConfig
-	global.CONF.System.BaseDir = baseDir
+	global.CONF = serverConfig           //是从app.yaml解析的
+	global.CONF.System.BaseDir = baseDir //从脚本里面解析
 	global.CONF.System.IsDemo = v.GetBool("system.is_demo")
 	global.CONF.System.DataDir = path.Join(global.CONF.System.BaseDir, "1panel")
 	global.CONF.System.Cache = path.Join(global.CONF.System.DataDir, "cache")
@@ -91,6 +93,7 @@ func Init() {
 	global.CONF.System.DbPath = path.Join(global.CONF.System.DataDir, "db")
 	global.CONF.System.LogPath = path.Join(global.CONF.System.DataDir, "log")
 	global.CONF.System.TmpDir = path.Join(global.CONF.System.DataDir, "tmp")
+	//从脚本里面解析
 	global.CONF.System.Port = port
 	global.CONF.System.Version = version
 	global.CONF.System.Username = username
@@ -98,9 +101,14 @@ func Init() {
 	global.CONF.System.Entrance = entrance
 	global.CONF.System.ChangeUserInfo = loadChangeInfo()
 	global.Viper = v
+
+	//所以总的来说，配置是app.yaml文件和脚本文件的组合
+
 }
 
+// 这个方法很奇怪，是从脚本中读取配置，很神奇的脑洞……
 func loadParams(param string) string {
+
 	stdout, err := cmd.Execf("grep '^%s=' /usr/local/bin/1pctl | cut -d'=' -f2", param)
 	if err != nil {
 		panic(err)
